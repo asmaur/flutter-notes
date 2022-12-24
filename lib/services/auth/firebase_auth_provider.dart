@@ -1,33 +1,39 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth, FirebaseAuthException;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:notes/services/auth/auth_user.dart';
 import 'package:notes/services/auth/auth_provider.dart';
 import 'package:notes/services/auth/auth_exceptions.dart';
 
+import 'package:notes/firebase_options.dart';
 
 class FirebaseAuthProvider implements AuthProvider {
   @override
-  Future<AuthUser> createUser({required String email, required String password}) async{
-    try{
+  Future<AuthUser> createUser({
+    required String email,
+    required String password,
+  }) async {
+    try {
       await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: email, password: password
+        email: email,
+        password: password,
       );
       final user = currentUser;
-      if(user != null){
+      if (user != null) {
         return user;
-      }else{
+      } else {
         throw UserNotLoggedInAuthException();
       }
-    } on FirebaseAuthException catch(e){
-      if(e.code == 'weak-password'){
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
         throw WeakPasswordAuthException();
-      }else if(e.code == 'email-already-in-use'){
-        throw EmailAlreadyInUserAuthException();
-      } else if (e.code == 'invalid-email'){
+      } else if (e.code == 'email-already-in-use') {
+        throw EmailAlreadyInUseAuthException();
+      } else if (e.code == 'invalid-email') {
         throw InvalidEmailAuthException();
-      }else{
+      } else {
         throw GenericAuthException();
       }
-    } catch (_){
+    } catch (_) {
       throw GenericAuthException();
     }
   }
@@ -35,56 +41,67 @@ class FirebaseAuthProvider implements AuthProvider {
   @override
   AuthUser? get currentUser {
     final user = FirebaseAuth.instance.currentUser;
-    if(user != null){
+    if (user != null) {
       return AuthUser.fromFirebase(user);
-    }else{
+    } else {
       return null;
     }
   }
 
   @override
-  Future<AuthUser> logIn({required String email, required String password}) async{
-    try{
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+  Future<AuthUser> logIn({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       final user = currentUser;
-      if(user != null){
+      if (user != null) {
         return user;
-      }else{
+      } else {
         throw UserNotLoggedInAuthException();
       }
-    } on FirebaseAuthException catch (e){
-      if(e.code == 'user-not-found'){
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
         throw UserNotFoundAuthException();
-      }else if(e.code == 'wrong-password'){
+      } else if (e.code == 'wrong-password') {
         throw WrongPasswordAuthException();
       } else {
         throw GenericAuthException();
       }
-    } catch (_){
-        throw GenericAuthException();
+    } catch (_) {
+      throw GenericAuthException();
     }
-
   }
 
   @override
-  Future<void> logOut() async{
+  Future<void> logOut() async {
     final user = FirebaseAuth.instance.currentUser;
-    if(user != null){
+    if (user != null) {
       await FirebaseAuth.instance.signOut();
-    }else{
+    } else {
       throw UserNotLoggedInAuthException();
     }
   }
 
   @override
-  Future<void> sendEmailVerification() async{
+  Future<void> sendEmailVerification() async {
     final user = FirebaseAuth.instance.currentUser;
 
-    if( user != null){
+    if (user != null) {
       await user.sendEmailVerification();
-    }else{
+    } else {
       throw UserNotLoggedInAuthException();
     }
   }
 
+  @override
+  Future<void> initialize() async{
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
 }

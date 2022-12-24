@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "145731753978",
+    "project_id": "notes-2022-flutter",
+    "storage_bucket": "notes-2022-flutter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:145731753978:android:8cd299d561713a55eff643",
+        "android_client_info": {
+          "package_name": "com.wanubit.notes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "145731753978-kiop13aqkhk5op9if2g67equivjmduvl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhj2ezAZTb2cb7DBjKKO7VFSYjrRYuzLA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "145731753978-kiop13aqkhk5op9if2g67equivjmduvl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

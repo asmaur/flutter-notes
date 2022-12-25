@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:notes/services/auth/auth_service.dart';
 import 'dart:developer' as devtools show log;
-import '../constants/routes.dart';
-import '../enums/menu_action.dart';
-import '../services/crud/notes_services.dart';
+import '../../constants/routes.dart';
+import '../../enums/menu_action.dart';
+import '../../services/crud/notes_services.dart';
 
 class NotesView extends StatefulWidget {
   const NotesView({Key? key}) : super(key: key);
@@ -36,6 +36,13 @@ class _NotesViewState extends State<NotesView> {
       appBar: AppBar(
         title: const Text("Your Notes"),
         actions: [
+          IconButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed(newNoteRoute);
+              },
+              icon: const Icon(
+                Icons.add,
+              )),
           PopupMenuButton<MenuAction>(onSelected: (value) async {
             switch (value) {
               case MenuAction.logout:
@@ -54,7 +61,7 @@ class _NotesViewState extends State<NotesView> {
               PopupMenuItem(
                 value: MenuAction.logout,
                 child: Text("Log out"),
-              )
+              ),
             ];
           })
         ],
@@ -64,16 +71,18 @@ class _NotesViewState extends State<NotesView> {
         builder: (context, snapshot) {
           switch (snapshot.connectionState) {
             case ConnectionState.done:
-              return StreamBuilder(stream: _notesService.allNotes,
-              builder: (context, snapshot){
-                switch(snapshot.connectionState){
-                  case ConnectionState.waiting:
-                    return const Text("Waiting for all notes");
-                  default:
-                    return CircularProgressIndicator();
-
-                }
-              },);
+              return StreamBuilder(
+                stream: _notesService.allNotes,
+                builder: (context, snapshot) {
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                    case ConnectionState.active:
+                      return const Text("Waiting for all notes...");
+                    default:
+                      return CircularProgressIndicator();
+                  }
+                },
+              );
             default:
               return const CircularProgressIndicator();
           }

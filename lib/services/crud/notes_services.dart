@@ -128,7 +128,7 @@ class NotesService {
 
   Future<DatabaseNote> createNote({
     required DatabaseUser owner,
-    required String text,
+    //required String text,
   }) async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
@@ -137,7 +137,7 @@ class NotesService {
     const text = '';
 
     final noteId = await db.insert(
-        noteTable, {userIdColumn: owner.id, textColumn: text, syncedColumn: 1});
+        noteTable, {userIdColumn: owner.id, syncedColumn: 1});
 
     final note = DatabaseNote(
       id: noteId,

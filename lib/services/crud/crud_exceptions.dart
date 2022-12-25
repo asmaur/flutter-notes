@@ -8,7 +8,7 @@ class UserAlreadyExists implements Exception {}
 
 class DatabaseIsNotOpen implements Exception {}
 
-class CouldNotFoundUser implements Exception {}
+class CouldNotFindUser implements Exception {}
 
 class CouldNotDeleteNote implements Exception {}
 

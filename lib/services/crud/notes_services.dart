@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' show join;
-import 'package:path_provider/path_provider.dart' show getApplicationDocumentsDirectory, MissingPlatformDirectoryException;
-import 'package:notes/constants/db_constants.dart';
+import 'package:path_provider/path_provider.dart'
+    show getApplicationDocumentsDirectory, MissingPlatformDirectoryException;
+//import 'package:notes/constants/db_constants.dart';
+import '../../constants/db_constants.dart';
 import 'crud_exceptions.dart';
-
 
 class NotesService {
   Database? _db;
@@ -14,28 +15,37 @@ class NotesService {
   List<DatabaseNote> _notes = [];
 
   static final NotesService _shared = NotesService._sharedInstance();
-  NotesService._sharedInstance();
+
+  NotesService._sharedInstance() {
+    _notesStreamController =
+        StreamController<List<DatabaseNote>>.broadcast(onListen: () {
+      _notesStreamController.sink.add(_notes);
+    });
+  }
 
   factory NotesService() => _shared;
+  late final StreamController<List<DatabaseNote>> _notesStreamController;
 
-  final _notesStreamController = StreamController<List<DatabaseNote>>.broadcast();
+  //final _notesStreamController = StreamController<List<DatabaseNote>>.broadcast();
 
-  Stream<List<DatabaseNote>> get allNotes =>_notesStreamController.stream;
+  Stream<List<DatabaseNote>> get allNotes => _notesStreamController.stream;
 
-  Future<DatabaseUser> getOrCreateUser({required String email,}) async {
+  Future<DatabaseUser> getOrCreateUser({
+    required String email,
+  }) async {
     await _ensureDbIsOpen();
-    try{
+    try {
       final user = await getUser(email: email);
       return user;
     } on CouldNotFindUser {
       final createdUser = await createUser(email: email);
       return createdUser;
-    } catch (e){
+    } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> _cacheNotes() async{
+  Future<void> _cacheNotes() async {
     final allNotes = await getAllNotes();
     _notes = allNotes.toList();
     _notesStreamController.add(_notes);
@@ -50,14 +60,17 @@ class NotesService {
     await getNote(id: note.id);
     final updatedCount = await db.update(
       noteTable,
-      {textColumn: text, syncedColumn: 0},
+      {
+        textColumn: text,
+        syncedColumn: 0,
+      },
       where: 'id = ?',
       whereArgs: [note.id],
     );
 
     if (updatedCount == 0) {
       throw CouldNotUpdateNote();
-    }else{
+    } else {
       final updatedNote = await getNote(id: note.id);
       _notes.removeWhere((note) => note.id == updatedNote.id);
       _notes.add(updatedNote);
@@ -66,8 +79,7 @@ class NotesService {
     }
   }
 
-  Future<Iterable<DatabaseNote>> getAllNotes(
-      ) async {
+  Future<Iterable<DatabaseNote>> getAllNotes() async {
     await _ensureDbIsOpen();
     final db = _getDatabaseOrThrow();
     // final dbUser = await getUser(email: owner.email);
@@ -93,9 +105,10 @@ class NotesService {
 
     if (notes.isEmpty) {
       throw CouldNotFindNote();
-    }else{
+    } else {
       final note = DatabaseNote.fromRow(notes.first);
       _notes.removeWhere((note) => note.id == id);
+      _notes.add(note);
       _notesStreamController.add(_notes);
       return note;
     }
@@ -119,11 +132,10 @@ class NotesService {
     );
     if (deletedCount == 0) {
       throw CouldNotDeleteNote();
-    }else{
+    } else {
       _notes.removeWhere((note) => note.id == id);
       _notesStreamController.add(_notes);
     }
-
   }
 
   Future<DatabaseNote> createNote({
@@ -136,8 +148,8 @@ class NotesService {
     if (dbUser != owner) throw CouldNotFindUser();
     const text = '';
 
-    final noteId = await db.insert(
-        noteTable, {userIdColumn: owner.id, syncedColumn: 1});
+    final noteId =
+        await db.insert(noteTable, {userIdColumn: owner.id, syncedColumn: 1, textColumn: text});
 
     final note = DatabaseNote(
       id: noteId,
@@ -209,12 +221,10 @@ class NotesService {
     }
   }
 
-  Future<void> _ensureDbIsOpen() async{
-    try{
+  Future<void> _ensureDbIsOpen() async {
+    try {
       await open();
-    }on DatabaseAlreadyOpenException{
-
-    }
+    } on DatabaseAlreadyOpenException {}
   }
 
   Future<void> open() async {

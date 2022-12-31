@@ -6,6 +6,11 @@ import 'package:notes/services/auth/bloc/auth_state.dart';
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(AuthProvider provider)
       : super(const AuthStateUninitialized(isLoading: true)) {
+
+    on<AuthEventShouldRegister>((event, emit) {
+      emit(const AuthStateRegistering(exception: null, isLoading: false,));
+    });
+
     on<AuthEventSendEmailVerification>((event, emit) async {
       await provider.sendEmailVerification();
       emit(state);
@@ -97,6 +102,46 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           ),
         );
       }
+    });
+
+    on<AuthEventForgotPassword>((event, emit) async {
+      emit(const AuthStateForgotPassword(
+        exception: null,
+        hasSendEmail: false,
+        isLoading: false,
+      ));
+      final email = event.email;
+      if (email == null) {
+        return;
+      }
+
+      emit(
+        const AuthStateForgotPassword(
+          exception: null,
+          hasSendEmail: false,
+          isLoading: true,
+        ),
+      );
+
+      bool didSendEmail;
+      Exception? exception;
+
+      try {
+        await provider.sendPasswordReset(toEmail: email);
+        didSendEmail = true;
+        exception = null;
+      } on Exception catch (e) {
+        didSendEmail = false;
+        exception = e;
+      }
+
+      emit(
+        AuthStateForgotPassword(
+          exception: exception,
+          hasSendEmail: didSendEmail,
+          isLoading: false,
+        ),
+      );
     });
   }
 }

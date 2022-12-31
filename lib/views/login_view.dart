@@ -41,20 +41,11 @@ class _LoginViewState extends State<LoginView> {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) async {
         if (state is AuthStateLoggedOut) {
-          // final closeDialog = _closeDialogHandle;
-          //
-          // if (!state.isLoading && closeDialog != null) {
-          //   closeDialog();
-          //   _closeDialogHandle = null;
-          // } else if (state.isLoading && closeDialog == null) {
-          //   _closeDialogHandle =
-          //       showLoadingDialog(context: context, text: "Loading ...");
-          // }
 
           if (state.exception is UserNotFoundAuthException) {
             await showErrorDialog(
               context,
-              "User not found.",
+              "Cannot find user with the entered credentials.",
             );
           } else if (state.exception is WrongPasswordAuthException) {
             await showErrorDialog(context, "Wrong credentials.");
@@ -67,49 +58,60 @@ class _LoginViewState extends State<LoginView> {
         appBar: AppBar(
           title: const Text("Login"),
         ),
-        body: Column(
-          children: [
-            TextField(
-              controller: _email,
-              enableSuggestions: false,
-              autocorrect: false,
-              keyboardType: TextInputType.emailAddress,
-              decoration:
-                  const InputDecoration(hintText: "Enter your email here"),
-            ),
-            TextField(
-              controller: _password,
-              obscureText: true,
-              enableSuggestions: false,
-              autocorrect: false,
-              decoration: const InputDecoration(
-                hintText: "Enter your password here",
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const Text("Please log in to your account."),
+              TextField(
+                controller: _email,
+                enableSuggestions: false,
+                autocorrect: false,
+                keyboardType: TextInputType.emailAddress,
+                decoration:
+                    const InputDecoration(hintText: "Enter your email here"),
               ),
-            ),
-            BlocListener<AuthBloc, AuthState>(
-              listener: (context, state) async {},
-              child: TextButton(
-                onPressed: () async {
-                  final email = _email.text;
-                  final password = _password.text;
-                  context.read<AuthBloc>().add(AuthEventLogin(
-                        email,
-                        password,
-                      ));
-                },
-                child: const Text("Login"),
+              TextField(
+                controller: _password,
+                obscureText: true,
+                enableSuggestions: false,
+                autocorrect: false,
+                decoration: const InputDecoration(
+                  hintText: "Enter your password here",
+                ),
               ),
-            ),
-            TextButton(
-                onPressed: () {
-                  context.read<AuthBloc>().add(
-                        const AuthEventShouldRegister(),
-                      );
-                  // Navigator.of(context)
-                  //     .pushNamedAndRemoveUntil(registerRoute, (route) => false);
-                },
-                child: const Text("Not registered yet? Register here!"))
-          ],
+              BlocListener<AuthBloc, AuthState>(
+                listener: (context, state) async {},
+                child: TextButton(
+                  onPressed: () async {
+                    final email = _email.text;
+                    final password = _password.text;
+                    context.read<AuthBloc>().add(AuthEventLogin(
+                          email,
+                          password,
+                        ));
+                  },
+                  child: const Text("Login"),
+                ),
+              ),
+              TextButton(
+                  onPressed: () {
+                    context.read<AuthBloc>().add(
+                      const AuthEventForgotPassword(),
+                    );
+                  },
+                  child: const Text("I forgot my password")),
+              TextButton(
+                  onPressed: () {
+                    context.read<AuthBloc>().add(
+                          const AuthEventShouldRegister(),
+                        );
+                    // Navigator.of(context)
+                    //     .pushNamedAndRemoveUntil(registerRoute, (route) => false);
+                  },
+                  child: const Text("Not registered yet? Register here!"))
+            ],
+          ),
         ),
       ),
     );
